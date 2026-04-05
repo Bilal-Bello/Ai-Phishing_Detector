@@ -1,0 +1,234 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>PhishGuard — AI Threat Intelligence</title>
+  <link rel="stylesheet" href="style.css" />
+  <link rel="preconnect" href="https://fonts.googleapis.com" />
+  <link href="https://fonts.googleapis.com/css2?family=Space+Mono:wght@400;700&family=DM+Sans:wght@300;400;500;600&display=swap" rel="stylesheet" />
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.0/dist/chart.umd.min.js"></script>
+</head>
+<body>
+
+  <!-- Background grid -->
+  <div class="bg-grid"></div>
+  <div class="bg-glow"></div>
+
+  <!-- ─── HEADER ─── -->
+  <header class="header">
+    <div class="header-left">
+      <div class="logo">
+        <span class="logo-icon">⬡</span>
+        <span class="logo-text">PhishGuard</span>
+        <span class="logo-tag">AI</span>
+      </div>
+      <div class="header-subtitle">Threat Intelligence Dashboard</div>
+    </div>
+    <div class="header-right">
+      <div class="status-dot"></div>
+      <span class="status-text">System Online</span>
+    </div>
+  </header>
+
+  <!-- ─── MAIN ─── -->
+  <main class="main">
+
+    <!-- ─── INPUT PANEL ─── -->
+    <section class="input-section">
+      <div class="input-label">
+        <span class="label-line"></span>
+        <span>URL THREAT SCAN</span>
+        <span class="label-line"></span>
+      </div>
+      <div class="input-wrapper">
+        <span class="input-prefix">https://</span>
+        <input
+          type="text"
+          id="urlInput"
+          class="url-input"
+          placeholder="Enter URL to analyse..."
+          autocomplete="off"
+          spellcheck="false"
+        />
+        <button id="scanBtn" class="scan-btn">
+          <span class="btn-text">SCAN</span>
+          <span class="btn-icon">→</span>
+        </button>
+      </div>
+      <div class="input-examples">
+        <span>Try:</span>
+        <button class="example-pill" onclick="fillExample('http://paypa1-login.verify-secure.com/account')">paypa1-login.verify-secure.com</button>
+        <button class="example-pill" onclick="fillExample('https://google.com')">google.com</button>
+        <button class="example-pill" onclick="fillExample('http://192.168.1.1/bank/login')">192.168.1.1/bank/login</button>
+      </div>
+    </section>
+
+    <!-- ─── LOADING ─── -->
+    <div class="loader-wrapper" id="loader" style="display:none;">
+      <div class="loader-bar"><div class="loader-fill"></div></div>
+      <div class="loader-text">Analysing threat vectors<span class="dots">...</span></div>
+    </div>
+
+    <!-- ─── RESULTS (hidden until scan) ─── -->
+    <div class="results-wrapper" id="results" style="display:none;">
+
+      <!-- TOP ROW: verdict + risk gauge + stats -->
+      <div class="row row-top">
+
+        <!-- Verdict card -->
+        <div class="card verdict-card" id="verdictCard">
+          <div class="card-label">VERDICT</div>
+          <div class="verdict-icon" id="verdictIcon">⬡</div>
+          <div class="verdict-text" id="verdictText">—</div>
+          <div class="verdict-url" id="verdictUrl"></div>
+          <div class="verdict-badge" id="verdictBadge"></div>
+        </div>
+
+        <!-- Risk gauge -->
+        <div class="card gauge-card">
+          <div class="card-label">RISK SCORE</div>
+          <div class="gauge-wrap">
+            <canvas id="gaugeChart" width="220" height="130"></canvas>
+            <div class="gauge-center">
+              <span class="gauge-value" id="gaugeValue">0</span>
+              <span class="gauge-unit">/100</span>
+            </div>
+          </div>
+          <div class="gauge-tiers">
+            <span class="tier tier-low">LOW</span>
+            <span class="tier tier-mid">MED</span>
+            <span class="tier tier-high">HIGH</span>
+          </div>
+        </div>
+
+        <!-- Quick stats -->
+        <div class="card stats-card">
+          <div class="card-label">QUICK STATS</div>
+          <div class="stats-grid">
+            <div class="stat-item">
+              <div class="stat-icon">🔒</div>
+              <div class="stat-info">
+                <div class="stat-val" id="statHttps">—</div>
+                <div class="stat-key">HTTPS</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">🌐</div>
+              <div class="stat-info">
+                <div class="stat-val" id="statDomain">—</div>
+                <div class="stat-key">Domain</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">⚠️</div>
+              <div class="stat-info">
+                <div class="stat-val" id="statAlerts">—</div>
+                <div class="stat-key">Alerts</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">📏</div>
+              <div class="stat-info">
+                <div class="stat-val" id="statLength">—</div>
+                <div class="stat-key">URL Length</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">🔢</div>
+              <div class="stat-info">
+                <div class="stat-val" id="statSubdomains">—</div>
+                <div class="stat-key">Subdomains</div>
+              </div>
+            </div>
+            <div class="stat-item">
+              <div class="stat-icon">📡</div>
+              <div class="stat-info">
+                <div class="stat-val" id="statIp">—</div>
+                <div class="stat-key">IP in URL</div>
+              </div>
+            </div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- MIDDLE ROW: entropy meter + alerts -->
+      <div class="row row-mid">
+
+        <!-- Entropy meter -->
+        <div class="card entropy-card">
+          <div class="card-label">DOMAIN ENTROPY</div>
+          <div class="entropy-visual">
+            <canvas id="entropyChart" width="100%" height="180"></canvas>
+          </div>
+          <div class="entropy-meta">
+            <div class="entropy-val-wrap">
+              <span class="entropy-label">Shannon Entropy</span>
+              <span class="entropy-value" id="entropyValue">—</span>
+            </div>
+            <div class="entropy-bar-wrap">
+              <div class="entropy-bar">
+                <div class="entropy-fill" id="entropyFill"></div>
+              </div>
+              <div class="entropy-scale">
+                <span>0</span><span>2</span><span>4</span><span>6</span>
+              </div>
+            </div>
+            <div class="entropy-verdict" id="entropyVerdict"></div>
+          </div>
+        </div>
+
+        <!-- Alerts panel -->
+        <div class="card alerts-card">
+          <div class="card-label">THREAT ALERTS <span class="alert-count-badge" id="alertCountBadge">0</span></div>
+          <div class="alerts-list" id="alertsList">
+            <div class="no-alerts">No alerts triggered</div>
+          </div>
+        </div>
+
+      </div>
+
+      <!-- BOTTOM ROW: alert breakdown radar + similar brands -->
+      <div class="row row-bottom">
+
+        <!-- Alert breakdown radar -->
+        <div class="card radar-card">
+          <div class="card-label">THREAT VECTOR BREAKDOWN</div>
+          <div class="radar-wrap">
+            <canvas id="radarChart" width="300" height="300"></canvas>
+          </div>
+        </div>
+
+        <!-- Similar brands table -->
+        <div class="card brands-card">
+          <div class="card-label">BRAND SIMILARITY MATCHES</div>
+          <div id="brandsContent">
+            <div class="no-alerts">No brand matches detected</div>
+          </div>
+        </div>
+
+        <!-- Details breakdown -->
+        <div class="card details-card">
+          <div class="card-label">FEATURE ANALYSIS</div>
+          <div class="details-list" id="detailsList"></div>
+        </div>
+
+      </div>
+
+    </div>
+    <!-- end results -->
+
+  </main>
+
+  <!-- ─── FOOTER ─── -->
+  <footer class="footer">
+    <span class="footer-sep">·</span>
+    <span>Powered by ML + Heuristic Analysis, <br>
+    Designed with 💖 by Aboubakr Bilal </span>
+
+  </footer>
+
+  <script src="app.js"></script>
+</body>
+</html>

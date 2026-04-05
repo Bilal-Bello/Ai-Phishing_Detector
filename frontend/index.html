@@ -1,0 +1,65 @@
+<!DOCTYPE html>
+<html>
+<head>
+<title>AI Phishing Detector</title>
+</head>
+
+<body>
+
+<h1>Phishing Detection Tool</h1>
+
+<input type="text" id="urlInput" placeholder="Enter URL here">
+
+<button onclick="scanURL()">Scan</button>
+
+<p id="result"></p>
+
+<script>
+
+async function scanURL() {
+
+    let url = document.getElementById("urlInput").value;
+
+    try {
+
+        let response = await fetch("http://127.0.0.1:5000/predict", {
+            method: "POST",
+            headers: {
+                "Content-Type": "application/json"
+            },
+            body: JSON.stringify({
+                 url: url
+             })
+        });
+
+        let data = await response.json();
+
+        let resultText = "Prediction: " + data.prediction;
+
+if (data.alerts && data.alerts.length > 0) {
+
+    resultText += "\n\nSecurity Alerts:\n";
+
+    data.alerts.forEach(alert => {
+        resultText += "- " + alert + "\n";
+    });
+
+}
+
+document.getElementById("result").innerText = resultText;
+
+    } catch(error) {
+
+        document.getElementById("result").innerText =
+            "Error connecting to backend";
+
+        console.log(error);
+    }
+
+}
+
+
+</script>
+
+</body>
+</html>
