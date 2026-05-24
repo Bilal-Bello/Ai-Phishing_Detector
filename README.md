@@ -50,5 +50,13 @@ Here's your clean, professional README features section:
 - **Subdomain Depth Check** — Detects suspicious deep subdomain chains
 - **HTTPS Validation** — Flags any URL not using a secure protocol
 - **Risk Score (0–100)** — Quantified threat level beyond a simple binary label
+
+
+
+testing link: https://ai-powered-phishing-defence.netlify.app/
+
+video presentation link: https://youtu.be/yP9w7YV31C4
+
+😊
 - **REST API with CORS** — Clean JSON responses, ready to plug into any frontend
 - **Graceful Fallback** — API runs even if the model file is missing, falling back to heuristics only
